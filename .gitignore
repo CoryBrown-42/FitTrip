@@ -135,9 +135,11 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+
 # Capacitor native projects
-android/
+# ios/ is still ignored, but android/ is tracked except build outputs
 ios/
+android/app/build/
 
 # Google Play service account key
 play-service-account.json
