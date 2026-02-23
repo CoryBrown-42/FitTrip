@@ -15,14 +15,15 @@ Keep responses concise but helpful. Use encouraging language. When giving workou
 
 export async function chatWithCoach(messages, userContext = '') {
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
+        const systemText = SYSTEM_PROMPT + (userContext ? `\n\nUser context:\n${userContext}` : '')
         const chat = model.startChat({
             history: messages.slice(0, -1).map(m => ({
                 role: m.role === 'user' ? 'user' : 'model',
                 parts: [{ text: m.content }],
             })),
-            systemInstruction: SYSTEM_PROMPT + (userContext ? `\n\nUser context:\n${userContext}` : ''),
+            systemInstruction: { role: 'user', parts: [{ text: systemText }] },
         })
 
         const lastMessage = messages[messages.length - 1]
@@ -31,13 +32,13 @@ export async function chatWithCoach(messages, userContext = '') {
         return response.text()
     } catch (error) {
         console.error('Gemini API error:', error)
-        throw new Error('Failed to get response from AI Coach. Please try again.')
+        throw new Error(error?.message || 'Failed to get response from AI Coach. Please try again.')
     }
 }
 
 export async function getWorkoutSuggestion(goal, fitnessLevel, equipment, duration) {
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
         const prompt = `Create a specific workout plan with the following parameters:
 - Goal: ${goal}
@@ -57,13 +58,13 @@ Be specific and practical.`
         return response.text()
     } catch (error) {
         console.error('Gemini API error:', error)
-        throw new Error('Failed to generate workout suggestion.')
+        throw new Error(error?.message || 'Failed to generate workout suggestion.')
     }
 }
 
 export async function analyzeProgress(workouts, goals, bodyData) {
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
         const prompt = `Analyze this fitness data and provide insights and recommendations:
 
@@ -89,6 +90,6 @@ Be encouraging but honest.`
         return response.text()
     } catch (error) {
         console.error('Gemini API error:', error)
-        throw new Error('Failed to analyze progress.')
+        throw new Error(error?.message || 'Failed to analyze progress.')
     }
 }

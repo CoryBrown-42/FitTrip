@@ -6,7 +6,7 @@ const GOOGLE_FIT_API = 'https://www.googleapis.com/fitness/v1/users/me'
 // You'll need to set up a Google Cloud project and enable the Fitness API
 // Then create OAuth 2.0 credentials (Web application type)
 // Add http://localhost:3000 as an authorized redirect URI
-const GOOGLE_CLIENT_ID = '' // User needs to set this up in Google Cloud Console
+const GOOGLE_CLIENT_ID = '909037773010-fcd70bkpef25ds3kbaiq738uom023rck.apps.googleusercontent.com'
 
 const SCOPES = [
     'https://www.googleapis.com/auth/fitness.activity.read',

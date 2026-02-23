@@ -129,11 +129,8 @@ export default function GoogleFit() {
                                 Sync steps, calories, heart rate, and weight data
                             </p>
                         </div>
-                        <div className={`px-2.5 py-1 rounded-full text-xs font-medium ${googleFit.connected
-                                ? 'bg-emerald-500/20 text-emerald-400'
-                                : 'bg-dark-700 text-dark-400'
-                            }`}>
-                            {googleFit.connected ? 'Connected' : 'Disconnected'}
+                        <div className="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-400">
+                            Deprecated
                         </div>
                     </div>
 
@@ -152,43 +149,26 @@ export default function GoogleFit() {
                         </div>
                     </div>
 
-                    {googleFit.connected ? (
-                        <div className="space-y-3">
-                            <button
-                                onClick={connectGoogleFit}
-                                disabled={loadingGF}
-                                className="w-full py-2.5 bg-dark-800 hover:bg-dark-700 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors"
-                            >
-                                <RefreshCw className={`w-4 h-4 ${loadingGF ? 'animate-spin' : ''}`} />
-                                Refresh Data
-                            </button>
-                            <button
-                                onClick={disconnectGoogleFit}
-                                className="w-full py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-sm font-medium transition-colors"
-                            >
-                                Disconnect
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="space-y-3">
-                            <button
-                                onClick={connectGoogleFit}
-                                disabled={loadingGF}
-                                className="w-full py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-                            >
-                                {loadingGF ? (
-                                    <RefreshCw className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <Link2 className="w-4 h-4" />
-                                )}
-                                Connect Google Fit
-                            </button>
-                            <div className="flex items-start gap-2 text-xs text-dark-500">
-                                <Info className="w-4 h-4 shrink-0 mt-0.5" />
-                                <p>Requires Google Cloud OAuth setup. See the setup guide after clicking connect.</p>
+                    <div className="space-y-3">
+                        <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                            <div className="flex items-start gap-2 text-sm text-amber-300">
+                                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-medium">Google Fit API was deprecated</p>
+                                    <p className="text-xs text-amber-400/70 mt-1">
+                                        Google shut down the Fit API in 2025. Use the Renpho CSV import or manually log workouts instead.
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                    )}
+                        <button
+                            disabled
+                            className="w-full py-2.5 bg-dark-800 text-dark-500 rounded-xl text-sm font-medium flex items-center justify-center gap-2 cursor-not-allowed"
+                        >
+                            <Link2 className="w-4 h-4" />
+                            No Longer Available
+                        </button>
+                    </div>
                 </div>
 
                 {/* Renpho */}
@@ -204,8 +184,8 @@ export default function GoogleFit() {
                             </p>
                         </div>
                         <div className={`px-2.5 py-1 rounded-full text-xs font-medium ${renpho.connected
-                                ? 'bg-emerald-500/20 text-emerald-400'
-                                : 'bg-dark-700 text-dark-400'
+                            ? 'bg-emerald-500/20 text-emerald-400'
+                            : 'bg-dark-700 text-dark-400'
                             }`}>
                             {renpho.connected ? `${renpho.data?.length || 0} records` : 'No data'}
                         </div>

@@ -121,10 +121,7 @@ function reducer(state, action) {
 export function AppProvider({ children }) {
     const [state, dispatch] = useReducer(reducer, null, loadState)
 
-    // Recalculate stats on load
-    useEffect(() => {
-        dispatch({ type: 'ADD_WORKOUT', payload: null }) // trigger won't work, let's just calc
-    }, [])
+    // Stats are recalculated below via calculateStats(state.workouts)
 
     // Persist state
     useEffect(() => {
