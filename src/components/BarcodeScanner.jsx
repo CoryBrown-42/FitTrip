@@ -47,13 +47,22 @@ export default function BarcodeScanner({ onScan, onClose }) {
                 {!manual ? (
                     <>
                         <div id="scanner-view" className="w-full h-64 bg-dark-800 rounded mb-3" />
-                        <div className="flex gap-2 mb-2">
+                        <div className="flex flex-wrap gap-2 mb-2 max-w-full">
                             {cameras.map(cam => (
-                                <button key={cam.id} className="px-2 py-1 bg-dark-700 text-white rounded" onClick={() => setCameraId(cam.id)}>
+                                <button
+                                    key={cam.id}
+                                    className="px-2 py-1 bg-dark-700 text-white rounded whitespace-nowrap flex-1 min-w-[120px] max-w-[180px]"
+                                    onClick={() => setCameraId(cam.id)}
+                                >
                                     {cam.label || 'Camera'}
                                 </button>
                             ))}
-                            <button className="px-2 py-1 bg-dark-700 text-white rounded" onClick={() => setManual(true)}>Manual Entry</button>
+                            <button
+                                className="px-2 py-1 bg-dark-700 text-white rounded whitespace-nowrap flex-1 min-w-[120px] max-w-[180px]"
+                                onClick={() => setManual(true)}
+                            >
+                                Manual Entry
+                            </button>
                         </div>
                         {error && <div className="text-red-500 text-xs mb-2">{error}</div>}
                     </>
