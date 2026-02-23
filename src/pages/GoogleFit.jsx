@@ -1,11 +1,14 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
 import {
     Link2, ExternalLink, Upload, FileSpreadsheet,
     Check, X, RefreshCw, Activity, Scale, Heart,
     Footprints, Moon, Info, AlertCircle, Download
 } from 'lucide-react'
-import { isGoogleFitAvailable } from '../services/googleFit'
+import {
+    isFitbitAvailable, startFitbitAuth, handleFitbitCallback,
+    loadFitbitToken, disconnectFitbit, getAllFitbitData
+} from '../services/fitbit'
 import { parseRenphoCSV, getRenphoSummary, generateSampleRenphoData } from '../services/renpho'
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid,
@@ -14,46 +17,48 @@ import {
 
 export default function GoogleFit() {
     const { state, dispatch } = useApp()
-    const [loadingGF, setLoadingGF] = useState(false)
+    const [loadingFitbit, setLoadingFitbit] = useState(false)
     const [loadingRenpho, setLoadingRenpho] = useState(false)
     const [error, setError] = useState(null)
     const fileInputRef = useRef(null)
 
-    const { googleFit, renpho } = state
+    const { fitbit, renpho } = state
     const renphoSummary = renpho?.data ? getRenphoSummary(renpho.data) : null
 
-    // Google Fit connection
-    async function connectGoogleFit() {
-        setLoadingGF(true)
+    // Check for Fitbit OAuth callback on mount
+    useEffect(() => {
+        const token = handleFitbitCallback()
+        if (token) {
+            fetchFitbitData()
+        }
+    }, [])
+
+    // Fitbit connection
+    async function connectFitbit() {
         setError(null)
         try {
-            if (!isGoogleFitAvailable()) {
-                setError(
-                    'Google Fit integration requires a Google Cloud OAuth Client ID. ' +
-                    'To set this up:\n' +
-                    '1. Go to console.cloud.google.com\n' +
-                    '2. Create a project and enable the Fitness API\n' +
-                    '3. Create OAuth 2.0 credentials (Web application)\n' +
-                    '4. Add http://localhost:3000 as authorized redirect URI\n' +
-                    '5. Copy the Client ID into src/services/googleFit.js'
-                )
-                return
-            }
-
-            const { initGoogleFit, requestGoogleFitAccess, getAllFitData } = await import('../services/googleFit')
-            await initGoogleFit()
-            await requestGoogleFitAccess()
-            const data = await getAllFitData(30)
-            dispatch({ type: 'SET_GOOGLE_FIT_DATA', payload: data })
+            startFitbitAuth()
         } catch (err) {
-            setError(err.message || 'Failed to connect to Google Fit')
-        } finally {
-            setLoadingGF(false)
+            setError(err.message || 'Failed to start Fitbit connection')
         }
     }
 
-    function disconnectGoogleFit() {
-        dispatch({ type: 'DISCONNECT_GOOGLE_FIT' })
+    async function fetchFitbitData() {
+        setLoadingFitbit(true)
+        setError(null)
+        try {
+            const data = await getAllFitbitData(30)
+            dispatch({ type: 'SET_FITBIT_DATA', payload: data })
+        } catch (err) {
+            setError(err.message || 'Failed to fetch Fitbit data')
+        } finally {
+            setLoadingFitbit(false)
+        }
+    }
+
+    function handleDisconnectFitbit() {
+        disconnectFitbit()
+        dispatch({ type: 'DISCONNECT_FITBIT' })
     }
 
     // Renpho CSV import
@@ -117,20 +122,23 @@ export default function GoogleFit() {
 
             {/* Connection cards */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Google Fit */}
+                {/* Fitbit */}
                 <div className="glass-card p-6">
                     <div className="flex items-start gap-4 mb-5">
-                        <div className="w-12 h-12 rounded-xl bg-blue-500/15 flex items-center justify-center shrink-0">
-                            <Activity className="w-6 h-6 text-blue-400" />
+                        <div className="w-12 h-12 rounded-xl bg-teal-500/15 flex items-center justify-center shrink-0">
+                            <Activity className="w-6 h-6 text-teal-400" />
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-white">Google Fit</h3>
+                            <h3 className="text-lg font-semibold text-white">Fitbit</h3>
                             <p className="text-sm text-dark-400 mt-0.5">
-                                Sync steps, calories, heart rate, and weight data
+                                Sync steps, calories, heart rate, sleep & weight
                             </p>
                         </div>
-                        <div className="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-400">
-                            Deprecated
+                        <div className={`px-2.5 py-1 rounded-full text-xs font-medium ${fitbit.connected
+                            ? 'bg-emerald-500/20 text-emerald-400'
+                            : 'bg-dark-700 text-dark-400'
+                            }`}>
+                            {fitbit.connected ? 'Connected' : 'Disconnected'}
                         </div>
                     </div>
 
@@ -149,26 +157,40 @@ export default function GoogleFit() {
                         </div>
                     </div>
 
-                    <div className="space-y-3">
-                        <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-                            <div className="flex items-start gap-2 text-sm text-amber-300">
-                                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                                <div>
-                                    <p className="font-medium">Google Fit API was deprecated</p>
-                                    <p className="text-xs text-amber-400/70 mt-1">
-                                        Google shut down the Fit API in 2025. Use the Renpho CSV import or manually log workouts instead.
-                                    </p>
-                                </div>
-                            </div>
+                    {fitbit.connected ? (
+                        <div className="space-y-3">
+                            <button
+                                onClick={fetchFitbitData}
+                                disabled={loadingFitbit}
+                                className="w-full py-2.5 bg-dark-800 hover:bg-dark-700 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                            >
+                                <RefreshCw className={`w-4 h-4 ${loadingFitbit ? 'animate-spin' : ''}`} />
+                                Refresh Data
+                            </button>
+                            <button
+                                onClick={handleDisconnectFitbit}
+                                className="w-full py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-sm font-medium transition-colors"
+                            >
+                                Disconnect
+                            </button>
                         </div>
-                        <button
-                            disabled
-                            className="w-full py-2.5 bg-dark-800 text-dark-500 rounded-xl text-sm font-medium flex items-center justify-center gap-2 cursor-not-allowed"
-                        >
-                            <Link2 className="w-4 h-4" />
-                            No Longer Available
-                        </button>
-                    </div>
+                    ) : (
+                        <div className="space-y-3">
+                            <button
+                                onClick={connectFitbit}
+                                className="w-full py-2.5 bg-teal-500 hover:bg-teal-600 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                            >
+                                <Link2 className="w-4 h-4" />
+                                Connect Fitbit
+                            </button>
+                            {!isFitbitAvailable() && (
+                                <div className="flex items-start gap-2 text-xs text-dark-500">
+                                    <Info className="w-4 h-4 shrink-0 mt-0.5" />
+                                    <p>Requires a Fitbit Developer App. Register at dev.fitbit.com, then add your Client ID to src/services/fitbit.js.</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Renpho */}
@@ -378,6 +400,109 @@ export default function GoogleFit() {
                             </tbody>
                         </table>
                     </div>
+                </div>
+            )}
+
+            {/* Fitbit data visualization */}
+            {fitbit.connected && fitbit.data && (
+                <div className="space-y-4">
+                    <h2 className="text-lg font-semibold text-white">Fitbit Activity Data</h2>
+
+                    {/* Summary cards */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {[
+                            {
+                                label: 'Today\'s Steps',
+                                value: fitbit.data.steps?.length > 0
+                                    ? fitbit.data.steps[fitbit.data.steps.length - 1].steps.toLocaleString()
+                                    : '—',
+                            },
+                            {
+                                label: 'Today\'s Calories',
+                                value: fitbit.data.calories?.length > 0
+                                    ? fitbit.data.calories[fitbit.data.calories.length - 1].calories.toLocaleString()
+                                    : '—',
+                            },
+                            {
+                                label: 'Resting HR',
+                                value: fitbit.data.heartRate?.length > 0
+                                    ? (fitbit.data.heartRate.filter(h => h.restingHeartRate).pop()?.restingHeartRate || '—') + ' bpm'
+                                    : '—',
+                            },
+                            {
+                                label: 'Last Sleep',
+                                value: fitbit.data.sleep?.length > 0
+                                    ? `${Math.round(fitbit.data.sleep[fitbit.data.sleep.length - 1].minutesAsleep / 60 * 10) / 10} hrs`
+                                    : '—',
+                            },
+                        ].map((item, i) => (
+                            <div key={i} className="glass-card p-4">
+                                <p className="text-xs text-dark-400 mb-1">{item.label}</p>
+                                <p className="text-xl font-bold text-white">{item.value}</p>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Steps chart */}
+                    {fitbit.data.steps?.length > 0 && (
+                        <div className="glass-card p-5">
+                            <h3 className="text-sm font-semibold text-white mb-4">Steps (Last 30 Days)</h3>
+                            <ResponsiveContainer width="100%" height={250}>
+                                <LineChart data={fitbit.data.steps}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                                    <XAxis dataKey="date" stroke="#64748b" fontSize={11} />
+                                    <YAxis stroke="#64748b" fontSize={11} />
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: '#1e293b',
+                                            border: '1px solid #334155',
+                                            borderRadius: '12px',
+                                            color: '#fff',
+                                            fontSize: 12,
+                                        }}
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="steps"
+                                        stroke="#14b8a6"
+                                        strokeWidth={2}
+                                        dot={{ fill: '#14b8a6', r: 3 }}
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    )}
+
+                    {/* Heart rate chart */}
+                    {fitbit.data.heartRate?.some(h => h.restingHeartRate) && (
+                        <div className="glass-card p-5">
+                            <h3 className="text-sm font-semibold text-white mb-4">Resting Heart Rate</h3>
+                            <ResponsiveContainer width="100%" height={250}>
+                                <LineChart data={fitbit.data.heartRate.filter(h => h.restingHeartRate)}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                                    <XAxis dataKey="date" stroke="#64748b" fontSize={11} />
+                                    <YAxis stroke="#64748b" fontSize={11} domain={['dataMin - 5', 'dataMax + 5']} />
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: '#1e293b',
+                                            border: '1px solid #334155',
+                                            borderRadius: '12px',
+                                            color: '#fff',
+                                            fontSize: 12,
+                                        }}
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="restingHeartRate"
+                                        stroke="#ef4444"
+                                        strokeWidth={2}
+                                        dot={{ fill: '#ef4444', r: 3 }}
+                                        name="Resting HR"
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

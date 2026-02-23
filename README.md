@@ -10,7 +10,7 @@ A modern fitness tracking web app built with React, Tailwind CSS, and Vite. Log 
 - **Workouts** — Log training sessions with name, type, muscle group, duration, calories, individual exercises (sets/reps/weight), and notes. Search and filter your workout history.
 - **Goals** — Create fitness goals with target values, deadlines, and categories. Track progress with visual progress bars and mark goals complete.
 - **AI Coach** — Chat with a Gemini-powered AI fitness coach that has context about your workouts, goals, and body data. Quick-prompt buttons for workout suggestions, progress analysis, nutrition tips, and motivation.
-- **Connections** — Connect Google Fit (OAuth) to sync steps, heart rate, weight, and sleep data. Import Renpho smart-scale CSV exports for body-composition tracking with trend charts. Sample data available for demo.
+- **Connections** — Connect Fitbit to sync steps, calories, heart rate, sleep, and weight data. Import Renpho smart-scale CSV exports for body-composition tracking with trend charts. Sample data available for demo.
 - **Profile** — Update your display name, weight, height, age, and weekly workout target. View lifetime stats and manage stored data.
 
 All data is persisted in the browser's `localStorage` — no server or account required.
@@ -85,16 +85,16 @@ The app opens automatically at **http://localhost:3000**.
 3. Alternatively, click **Load Sample Data** to explore with demo data.
 4. Weight, body fat, and muscle mass trends will appear in charts on the Connections page and Dashboard.
 
-### Connecting Google Fit (Optional)
+### Connecting Fitbit (Optional)
 
-Google Fit integration requires setting up OAuth credentials:
+Fitbit integration requires registering a developer app:
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com).
-2. Create a project and enable the **Fitness API**.
-3. Create **OAuth 2.0 credentials** (Web application type).
-4. Add `http://localhost:3000` as an authorized redirect URI.
-5. Copy the Client ID into `src/services/googleFit.js` (the `GOOGLE_CLIENT_ID` constant).
-6. Navigate to **Connections** in the app and click **Connect Google Fit**.
+1. Go to [Fitbit Developer](https://dev.fitbit.com/apps) and register a new app.
+2. Set **OAuth 2.0 Application Type** to "Client" (for implicit grant).
+3. Set **Callback URL** to `http://localhost:3000/connections`.
+4. Copy the **Client ID** (OAuth 2.0 Client ID) into `src/services/fitbit.js` (the `FITBIT_CLIENT_ID` constant).
+5. Navigate to **Connections** in the app and click **Connect Fitbit**.
+6. Authorize with your Fitbit account — steps, heart rate, sleep, and weight data will sync automatically.
 
 ### Profile
 
@@ -141,12 +141,13 @@ FitTrip/
     │   ├── Workouts.jsx    # Workout logging & history
     │   ├── Goals.jsx       # Goal tracking
     │   ├── AICoach.jsx     # Gemini AI chat interface
-    │   ├── GoogleFit.jsx   # Device connections (Google Fit & Renpho)
+    │   ├── GoogleFit.jsx   # Device connections (Fitbit & Renpho)
     │   └── Profile.jsx     # User profile & settings
     └── services/
         ├── gemini.js       # Gemini AI API integration
-        ├── googleFit.js    # Google Fit REST API client
-        └── renpho.js       # Renpho CSV parser & sample data
+        ├── fitbit.js       # Fitbit Web API client
+        ├── googleFit.js    # Google Fit REST API client (deprecated)
+        ├── renpho.js       # Renpho CSV parser & sample data
 ```
 
 ---

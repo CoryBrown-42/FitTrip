@@ -164,10 +164,10 @@ export default function Profile() {
                     </div>
                     <div className="flex items-center justify-between p-3 rounded-xl bg-dark-800/50">
                         <div>
-                            <p className="text-sm text-white">Google Fit</p>
+                            <p className="text-sm text-white">Fitbit</p>
                         </div>
-                        <span className={`text-sm font-medium ${state.googleFit.connected ? 'text-emerald-400' : 'text-dark-500'}`}>
-                            {state.googleFit.connected ? 'Connected' : 'Not connected'}
+                        <span className={`text-sm font-medium ${state.fitbit?.connected ? 'text-emerald-400' : 'text-dark-500'}`}>
+                            {state.fitbit?.connected ? 'Connected' : 'Not connected'}
                         </span>
                     </div>
                     <div className="flex items-center justify-between p-3 rounded-xl bg-dark-800/50">

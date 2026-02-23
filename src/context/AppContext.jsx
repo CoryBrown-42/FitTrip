@@ -16,6 +16,10 @@ const initialState = {
         connected: false,
         data: null,
     },
+    fitbit: {
+        connected: false,
+        data: null,
+    },
     renpho: {
         connected: false,
         data: null,
@@ -106,6 +110,12 @@ function reducer(state, action) {
         }
         case 'DISCONNECT_GOOGLE_FIT': {
             return { ...state, googleFit: { connected: false, data: null } }
+        }
+        case 'SET_FITBIT_DATA': {
+            return { ...state, fitbit: { connected: true, data: action.payload } }
+        }
+        case 'DISCONNECT_FITBIT': {
+            return { ...state, fitbit: { connected: false, data: null } }
         }
         case 'SET_RENPHO_DATA': {
             return { ...state, renpho: { connected: true, data: action.payload } }

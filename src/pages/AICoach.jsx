@@ -28,7 +28,7 @@ export default function AICoach() {
     }, [messages])
 
     function buildUserContext() {
-        const { workouts, goals, profile, renpho } = state
+        const { workouts, goals, profile, renpho, fitbit } = state
         const recentWorkouts = [...workouts].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5)
         const activeGoals = goals.filter(g => !g.completed)
         const latestRenpho = renpho?.data?.[renpho.data.length - 1]
@@ -56,6 +56,22 @@ export default function AICoach() {
             context += `\n- Weight: ${latestRenpho.weight} lbs`
             if (latestRenpho.bodyFat) context += `\n- Body Fat: ${latestRenpho.bodyFat}%`
             if (latestRenpho.muscleMass) context += `\n- Muscle Mass: ${latestRenpho.muscleMass} lbs`
+        }
+
+        if (fitbit?.connected && fitbit.data) {
+            const fb = fitbit.data
+            if (fb.steps?.length > 0) {
+                const latest = fb.steps[fb.steps.length - 1]
+                context += `\n\nFitbit - Latest steps: ${latest.steps} (${latest.date})`
+            }
+            if (fb.heartRate?.length > 0) {
+                const hr = fb.heartRate.filter(h => h.restingHeartRate).pop()
+                if (hr) context += `\nFitbit - Resting heart rate: ${hr.restingHeartRate} bpm`
+            }
+            if (fb.sleep?.length > 0) {
+                const sleep = fb.sleep[fb.sleep.length - 1]
+                context += `\nFitbit - Last sleep: ${sleep.minutesAsleep} min (efficiency: ${sleep.efficiency}%)`
+            }
         }
 
         return context
@@ -228,8 +244,8 @@ export default function AICoach() {
                             )}
                             <div
                                 className={`max-w-[80%] px-4 py-3 text-sm leading-relaxed ${msg.role === 'user'
-                                        ? 'chat-bubble-user text-white'
-                                        : 'chat-bubble-ai text-dark-200'
+                                    ? 'chat-bubble-user text-white'
+                                    : 'chat-bubble-ai text-dark-200'
                                     }`}
                             >
                                 {msg.role === 'user' ? msg.content : renderContent(msg.content)}
