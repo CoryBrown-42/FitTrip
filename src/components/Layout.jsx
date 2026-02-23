@@ -44,7 +44,7 @@ export default function Layout() {
         flex flex-col
       `}>
                 {/* Logo */}
-                <div className="flex items-center gap-3 px-6 py-5 border-b border-dark-700/50">
+                <div className="flex items-center gap-3 px-6 py-5 pt-[max(1.25rem,env(safe-area-inset-top))] border-b border-dark-700/50">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center">
                         <Activity className="w-6 h-6 text-white" />
                     </div>
@@ -106,7 +106,7 @@ export default function Layout() {
             {/* Main content */}
             <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Top bar */}
-                <header className="h-16 border-b border-dark-700/50 bg-dark-900/60 backdrop-blur-xl flex items-center px-4 lg:px-6 shrink-0">
+                <header className="min-h-16 border-b border-dark-700/50 bg-dark-900/60 backdrop-blur-xl flex items-center px-4 lg:px-6 shrink-0 pt-[env(safe-area-inset-top)]">
                     <button
                         className="lg:hidden mr-3 text-dark-400 hover:text-white"
                         onClick={() => setSidebarOpen(true)}

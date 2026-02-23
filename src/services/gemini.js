@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
-const GEMINI_API_KEY = 'AIzaSyBKdN_zTU9ESNTsgWOkMouV9d9e3npgKh8'
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY)
 
 const SYSTEM_PROMPT = `You are FitTrip AI Coach, a knowledgeable and encouraging fitness assistant. You help users with:
