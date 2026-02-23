@@ -146,6 +146,46 @@ async function fetchFitbit(endpoint) {
 }
 
 // --- Data fetching functions ---
+// Map Fitbit activity names to app workout types and muscle groups
+export const FITBIT_TYPE_MAP = {
+    'Walk': { type: 'Walking', muscleGroup: 'Full Body' },
+    'Run': { type: 'Running', muscleGroup: 'Legs' },
+    'Bike': { type: 'Cycling', muscleGroup: 'Legs' },
+    'Swim': { type: 'Swimming', muscleGroup: 'Full Body' },
+    'Yoga': { type: 'Yoga', muscleGroup: 'Core' },
+    'Strength Training': { type: 'Strength', muscleGroup: 'Full Body' },
+    'HIIT': { type: 'HIIT', muscleGroup: 'Full Body' },
+    'Cardio': { type: 'Cardio', muscleGroup: 'Full Body' },
+    'Rowing': { type: 'Cardio', muscleGroup: 'Back' },
+    'Boxing': { type: 'Boxing', muscleGroup: 'Arms' },
+    'Other': { type: 'Other', muscleGroup: 'Full Body' },
+}
+
+// Convert Fitbit activity to app workout format
+export function mapFitbitActivityToWorkout(activity) {
+    const mapping = FITBIT_TYPE_MAP[activity.activityName] || FITBIT_TYPE_MAP['Other']
+    return {
+        name: activity.activityName,
+        type: mapping.type,
+        muscleGroup: mapping.muscleGroup,
+        duration: Math.round(activity.duration / 60000),
+        calories: activity.calories,
+        date: activity.startTime.split('T')[0],
+        notes: activity.description || '',
+        exercises: [],
+        source: 'fitbit',
+        fitbitLogId: activity.logId,
+    }
+}
+
+// Fetch Fitbit activities (exercise logs)
+export async function getActivities(days = 30) {
+    const afterDate = new Date()
+    afterDate.setDate(afterDate.getDate() - days)
+    const afterStr = afterDate.toISOString().split('T')[0]
+    const data = await fetchFitbit(`/1/user/-/activities/list.json?afterDate=${afterStr}&sort=asc&limit=100&offset=0`)
+    return (data.activities || []).map(mapFitbitActivityToWorkout)
+}
 
 export async function getProfile() {
     const data = await fetchFitbit('/1/user/-/profile.json')
@@ -204,13 +244,13 @@ export async function getSleep(days = 30) {
 
 // Fetch all Fitbit data in one call
 export async function getAllFitbitData(days = 30) {
-    const [steps, calories, heartRate, weight, sleep] = await Promise.all([
+    const [steps, calories, heartRate, weight, sleep, activities] = await Promise.all([
         getSteps(days).catch(() => []),
         getCaloriesBurned(days).catch(() => []),
         getHeartRate(days).catch(() => []),
         getWeight(days).catch(() => []),
         getSleep(days).catch(() => []),
+        getActivities(days).catch(() => []),
     ])
-
-    return { steps, calories, heartRate, weight, sleep }
+    return { steps, calories, heartRate, weight, sleep, activities }
 }

@@ -6,11 +6,13 @@ import {
     TrendingUp, RefreshCw, Trash2, Lightbulb, ShieldCheck
 } from 'lucide-react'
 
+import { UtensilsCrossed } from 'lucide-react'
 const QUICK_PROMPTS = [
     { icon: Dumbbell, label: 'Suggest a workout', prompt: 'Suggest a complete workout for today based on my recent activity and goals.' },
     { icon: TrendingUp, label: 'Analyze my progress', prompt: 'Analyze my recent workout history and give me insights on my progress.' },
     { icon: Lightbulb, label: 'Nutrition tips', prompt: 'Give me some practical nutrition tips to support my fitness goals.' },
     { icon: Sparkles, label: 'Motivation', prompt: "I'm feeling unmotivated today. Help me get back on track with some encouragement and a plan." },
+    { icon: UtensilsCrossed, label: 'What can I make?', prompt: 'Based on the items currently in my pantry, what healthy meals can I make for dinner? Consider my fitness goals and nutritional needs.' },
 ]
 
 export default function AICoach() {
@@ -34,7 +36,7 @@ export default function AICoach() {
     }, [messages])
 
     function buildUserContext() {
-        const { workouts, goals, profile, renpho, fitbit } = state
+        const { workouts, goals, profile, renpho, fitbit, pantry } = state
         const recentWorkouts = [...workouts].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5)
         const activeGoals = goals.filter(g => !g.completed)
         const latestRenpho = renpho?.data?.[renpho.data.length - 1]
@@ -78,6 +80,23 @@ export default function AICoach() {
                 const sleep = fb.sleep[fb.sleep.length - 1]
                 context += `\nFitbit - Last sleep: ${sleep.minutesAsleep} min (efficiency: ${sleep.efficiency}%)`
             }
+        }
+
+        // Add pantry items section
+        if (pantry && pantry.length > 0) {
+            context += `\n\nPantry items:`
+            context += '\n' + pantry.map(item =>
+                `- ${item.name} (${item.brand}), Qty: ${item.quantity || 1}, Protein: ${item.nutrients?.protein_100g || 0}g, Calories: ${item.nutrients?.energy_kcal_100g || 0} kcal/100g`
+            ).join('\n')
+        }
+
+        // Add Fitbit activities section
+        if (fitbit?.connected && fitbit.data?.activities?.length > 0) {
+            const recentActivities = fitbit.data.activities.slice(-5)
+            context += `\n\nRecent Fitbit activities:`
+            context += '\n' + recentActivities.map(a =>
+                `- ${a.date}: ${a.name} (${a.type}, ${a.duration}min, ${a.calories}cal)`
+            ).join('\n')
         }
 
         return context

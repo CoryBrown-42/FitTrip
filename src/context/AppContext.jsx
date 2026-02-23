@@ -29,7 +29,9 @@ const initialState = {
         currentStreak: 0,
         caloriesBurned: 0,
         minutesExercised: 0,
-    }
+    },
+    pantry: [],
+    points: 0,
 }
 
 function loadState() {
@@ -82,49 +84,75 @@ function calculateStats(workouts) {
 
 function reducer(state, action) {
     switch (action.type) {
-        case 'ADD_WORKOUT': {
-            const workouts = [...state.workouts, { ...action.payload, id: Date.now() }]
-            return { ...state, workouts, stats: calculateStats(workouts) }
+        case 'UPDATE_PANTRY_ITEM_QUANTITY': {
+            const { barcode, delta } = action.payload
+            const pantry = (state.pantry || []).map(item =>
+                item.barcode === barcode
+                    ? { ...item, quantity: Math.max(1, (item.quantity || 1) + delta) }
+                    : item
+            )
+            return { ...state, pantry }
         }
-        case 'DELETE_WORKOUT': {
-            const workouts = state.workouts.filter(w => w.id !== action.payload)
-            return { ...state, workouts, stats: calculateStats(workouts) }
-        }
-        case 'ADD_GOAL': {
-            const goals = [...state.goals, { ...action.payload, id: Date.now(), createdAt: new Date().toISOString() }]
-            return { ...state, goals }
-        }
-        case 'UPDATE_GOAL': {
-            const goals = state.goals.map(g => g.id === action.payload.id ? { ...g, ...action.payload } : g)
-            return { ...state, goals }
-        }
-        case 'DELETE_GOAL': {
-            const goals = state.goals.filter(g => g.id !== action.payload)
-            return { ...state, goals }
-        }
-        case 'UPDATE_PROFILE': {
-            return { ...state, profile: { ...state.profile, ...action.payload } }
-        }
-        case 'SET_GOOGLE_FIT_DATA': {
-            return { ...state, googleFit: { connected: true, data: action.payload } }
-        }
-        case 'DISCONNECT_GOOGLE_FIT': {
-            return { ...state, googleFit: { connected: false, data: null } }
-        }
-        case 'SET_FITBIT_DATA': {
-            return { ...state, fitbit: { connected: true, data: action.payload } }
-        }
-        case 'DISCONNECT_FITBIT': {
-            return { ...state, fitbit: { connected: false, data: null } }
-        }
-        case 'SET_RENPHO_DATA': {
-            return { ...state, renpho: { connected: true, data: action.payload } }
-        }
-        case 'IMPORT_RENPHO_CSV': {
-            return { ...state, renpho: { connected: true, data: action.payload } }
-        }
-        default:
-            return state
+            case 'ADD_WORKOUT': {
+                const workouts = [...state.workouts, { ...action.payload, id: Date.now() }]
+                return { ...state, workouts, stats: calculateStats(workouts) }
+            }
+            case 'DELETE_WORKOUT': {
+                const workouts = state.workouts.filter(w => w.id !== action.payload)
+                return { ...state, workouts, stats: calculateStats(workouts) }
+            }
+            case 'ADD_GOAL': {
+                const goals = [...state.goals, { ...action.payload, id: Date.now(), createdAt: new Date().toISOString() }]
+                return { ...state, goals }
+            }
+            case 'UPDATE_GOAL': {
+                const goals = state.goals.map(g => g.id === action.payload.id ? { ...g, ...action.payload } : g)
+                return { ...state, goals }
+            }
+            case 'DELETE_GOAL': {
+                const goals = state.goals.filter(g => g.id !== action.payload)
+                return { ...state, goals }
+            }
+            case 'UPDATE_PROFILE': {
+                return { ...state, profile: { ...state.profile, ...action.payload } }
+            }
+            case 'SET_GOOGLE_FIT_DATA': {
+                return { ...state, googleFit: { connected: true, data: action.payload } }
+            }
+            case 'DISCONNECT_GOOGLE_FIT': {
+                return { ...state, googleFit: { connected: false, data: null } }
+            }
+            case 'SET_FITBIT_DATA': {
+                return { ...state, fitbit: { connected: true, data: action.payload } }
+            }
+            case 'DISCONNECT_FITBIT': {
+                return { ...state, fitbit: { connected: false, data: null } }
+            }
+            case 'SET_RENPHO_DATA': {
+                return { ...state, renpho: { connected: true, data: action.payload } }
+            }
+            case 'IMPORT_RENPHO_CSV': {
+                return { ...state, renpho: { connected: true, data: action.payload } }
+            }
+            // Pantry and scan points
+            case 'ADD_PANTRY_ITEM': {
+                return { ...state, pantry: [...(state.pantry || []), action.payload] }
+            }
+            case 'REMOVE_PANTRY_ITEM': {
+                return { ...state, pantry: (state.pantry || []).filter(item => item.barcode !== action.payload) }
+            }
+            case 'AWARD_SCAN_POINTS': {
+                return { ...state, points: (state.points || 0) + action.payload }
+            }
+            case 'IMPORT_FITBIT_ACTIVITIES': {
+                // Deduplicate by fitbitLogId
+                const existingIds = new Set(state.workouts.filter(w => w.source === 'fitbit').map(w => w.fitbitLogId))
+                const newActivities = (action.payload || []).filter(a => !existingIds.has(a.fitbitLogId))
+                const workouts = [...state.workouts, ...newActivities]
+                return { ...state, workouts, stats: calculateStats(workouts) }
+            }
+            default:
+                return state
     }
 }
 

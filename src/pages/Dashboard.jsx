@@ -22,7 +22,7 @@ const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
 
 export default function Dashboard() {
     const { state } = useApp()
-    const { workouts, goals, stats, renpho } = state
+    const { workouts, goals, stats, renpho, pantry } = state
 
     // Weekly workout data
     const last7Days = Array.from({ length: 7 }, (_, i) => {
@@ -88,6 +88,17 @@ export default function Dashboard() {
             subtext: `${Math.round(stats.minutesExercised / 60)} hours total`,
         },
     ]
+    // Food Points stat card
+    if (pantry && pantry.length > 0) {
+        const totalPoints = pantry.reduce((sum, item) => sum + (item.points || 0) * (item.quantity || 1), 0)
+        statCards.unshift({
+            label: 'Food Points',
+            value: totalPoints,
+            icon: Target,
+            color: 'from-amber-400 to-orange-500',
+            subtext: `${pantry.length} items in pantry`,
+        })
+    }
 
     return (
         <div className="space-y-6 max-w-7xl mx-auto">
@@ -244,7 +255,12 @@ export default function Dashboard() {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-medium text-white truncate">{w.name}</p>
-                                        <p className="text-xs text-dark-400">{w.type} · {w.duration} min</p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className="text-xs text-dark-400">{w.type} · {w.duration} min</span>
+                                            {w.source === 'fitbit' && (
+                                                <span className="px-2 py-1 bg-teal-500/20 text-teal-400 rounded text-xs font-semibold">Fitbit</span>
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-sm font-medium text-brand-400">{w.calories} cal</p>

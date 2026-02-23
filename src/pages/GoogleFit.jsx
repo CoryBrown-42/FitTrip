@@ -58,6 +58,9 @@ export default function GoogleFit() {
         try {
             const data = await getAllFitbitData(30)
             dispatch({ type: 'SET_FITBIT_DATA', payload: data })
+            if (data.activities && data.activities.length > 0) {
+                dispatch({ type: 'IMPORT_FITBIT_ACTIVITIES', payload: data.activities })
+            }
         } catch (err) {
             setError(err.message || 'Failed to fetch Fitbit data')
         } finally {

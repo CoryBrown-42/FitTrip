@@ -6,12 +6,14 @@ A modern fitness tracking web app built with React, Tailwind CSS, and Vite. Log 
 
 ## Features
 
-- **Dashboard** — Overview of your workout stats, weekly activity charts, workout-type distribution, recent workouts, active goals, and Renpho body-composition snapshot.
-- **Workouts** — Log training sessions with name, type, muscle group, duration, calories, individual exercises (sets/reps/weight), and notes. Search and filter your workout history.
-- **Goals** — Create fitness goals with target values, deadlines, and categories. Track progress with visual progress bars and mark goals complete.
-- **AI Coach** — Chat with a Gemini-powered AI fitness coach that has context about your workouts, goals, and body data. Quick-prompt buttons for workout suggestions, progress analysis, nutrition tips, and motivation.
-- **Connections** — Connect Fitbit to sync steps, calories, heart rate, sleep, and weight data. Import Renpho smart-scale CSV exports for body-composition tracking with trend charts. Sample data available for demo.
-- **Profile** — Update your display name, weight, height, age, and weekly workout target. View lifetime stats and manage stored data.
+**Dashboard** — Overview of your workout stats, weekly activity charts, workout-type distribution, recent workouts, active goals, Renpho body-composition snapshot, and Food Points.
+**Workouts** — Log training sessions with name, type, muscle group, duration, calories, individual exercises (sets/reps/weight), and notes. Search and filter your workout history. Auto-import Fitbit exercise logs with source badge and filter.
+**Goals** — Create fitness goals with target values, deadlines, and categories. Track progress with visual progress bars and mark goals complete.
+**AI Coach** — Chat with a Gemini-powered AI fitness coach that has context about your workouts, goals, body data, and pantry foods. Quick-prompt buttons for workout suggestions, progress analysis, nutrition tips, motivation, and meal recommendations based on your pantry.
+**Connections** — Connect Fitbit to sync steps, calories, heart rate, sleep, weight, and exercise logs. Import Renpho smart-scale CSV exports for body-composition tracking with trend charts. Sample data available for demo.
+**Food Barcode Scanning & Pantry** — Scan food barcodes using your device camera or manual entry. Look up nutrition info via Open Food Facts, earn nutrition-based points, and add foods to your pantry. Manage pantry items, adjust quantities, and remove foods when used up.
+**Points & Rewards** — Earn Food Points for scanning healthy foods. Points are shown on the dashboard and pantry.
+**Profile** — Update your display name, weight, height, age, and weekly workout target. View lifetime stats and manage stored data.
 
 All data is persisted in the browser's `localStorage` — no server or account required.
 
@@ -53,6 +55,20 @@ The app opens automatically at **http://localhost:3000**.
 ---
 
 ## Using the App
+### Food Barcode Scanning & Pantry
+
+1. Navigate to **Pantry** from the sidebar.
+2. Click **Scan Food** to open the barcode scanner (camera or manual entry).
+3. Scan a barcode or enter it manually (e.g., 3017620422003 for Nutella).
+4. Review nutrition info, Nutri-Score, NOVA group, and points earned.
+5. Click **Add to Pantry** to track the food and earn points.
+6. Adjust quantity or remove items as needed. Points are shown in the pantry and dashboard.
+
+### AI Coach Meal Suggestions
+
+1. Navigate to **AI Coach** from the sidebar.
+2. Click the quick prompt "What can I make?" or ask about meal ideas.
+3. The AI Coach will use your pantry foods, fitness goals, and nutrition needs to suggest healthy meals for dinner.
 
 ### Logging a Workout
 
@@ -94,7 +110,7 @@ Fitbit integration requires registering a developer app:
 3. Set **Callback URL** to `http://localhost:3000/connections`.
 4. Copy the **Client ID** (OAuth 2.0 Client ID) into `src/services/fitbit.js` (the `FITBIT_CLIENT_ID` constant).
 5. Navigate to **Connections** in the app and click **Connect Fitbit**.
-6. Authorize with your Fitbit account — steps, heart rate, sleep, and weight data will sync automatically.
+6. Authorize with your Fitbit account — steps, heart rate, sleep, weight, and exercise logs will sync automatically. Exercise logs are auto-imported as workouts with a Fitbit badge.
 
 ### Profile
 
@@ -102,6 +118,12 @@ Fitbit integration requires registering a developer app:
 2. Update your name, weight, height, age, and weekly workout target.
 3. Click **Save Profile** — these values help the AI Coach personalize its advice.
 4. Use **Clear All Data** in the Danger Zone to reset the app.
+
+### Dashboard Food Points & Fitbit Badge
+
+- The Dashboard now displays a **Food Points** stat card, showing your total nutrition points earned from scanned pantry items.
+- Recent workouts imported from Fitbit are marked with a **Fitbit badge** for easy identification.
+- Food Points are calculated based on nutrition and quantity of pantry items, and are visible both in the pantry and on the dashboard.
 
 ---
 

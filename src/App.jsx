@@ -6,6 +6,8 @@ import Goals from './pages/Goals'
 import AICoach from './pages/AICoach'
 import GoogleFit from './pages/GoogleFit'
 import Profile from './pages/Profile'
+import Pantry from './pages/Pantry'
+import BarcodeScan from './components/BarcodeScan'
 
 export default function App() {
     return (
@@ -17,6 +19,7 @@ export default function App() {
                 <Route path="ai-coach" element={<AICoach />} />
                 <Route path="connections" element={<GoogleFit />} />
                 <Route path="profile" element={<Profile />} />
+                <Route path="pantry" element={<Pantry />} />
             </Route>
         </Routes>
     )

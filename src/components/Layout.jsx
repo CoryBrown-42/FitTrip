@@ -8,7 +8,8 @@ import {
     User,
     Menu,
     X,
-    Activity
+    Activity,
+    Apple
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -16,6 +17,7 @@ const navItems = [
     { path: '/', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/workouts', label: 'Workouts', icon: Dumbbell },
     { path: '/goals', label: 'Goals', icon: Target },
+    { path: '/pantry', label: 'Pantry', icon: Apple },
     { path: '/ai-coach', label: 'AI Coach', icon: Bot },
     { path: '/connections', label: 'Connections', icon: Link2 },
     { path: '/profile', label: 'Profile', icon: User },
