@@ -144,3 +144,4 @@ play-service-account.json
 *.jks
 publish-playstore.bat
 publish-playstore.sh
+/.claude
