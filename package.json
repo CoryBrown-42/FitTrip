@@ -9,6 +9,9 @@
         "preview": "vite preview"
     },
     "dependencies": {
+        "@capacitor/android": "^8.1.0",
+        "@capacitor/cli": "^8.1.0",
+        "@capacitor/core": "^8.1.0",
         "@google/generative-ai": "^0.24.1",
         "date-fns": "^4.1.0",
         "lucide-react": "^0.460.0",
