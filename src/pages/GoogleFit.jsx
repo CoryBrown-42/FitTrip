@@ -7,7 +7,8 @@ import {
 } from 'lucide-react'
 import {
     isFitbitAvailable, startFitbitAuth, handleFitbitCallback,
-    loadFitbitToken, disconnectFitbit, getAllFitbitData
+    loadFitbitToken, disconnectFitbit, getAllFitbitData,
+    registerNativeAuthListener
 } from '../services/fitbit'
 import { parseRenphoCSV, getRenphoSummary, generateSampleRenphoData } from '../services/renpho'
 import {
@@ -27,10 +28,18 @@ export default function GoogleFit() {
 
     // Check for Fitbit OAuth callback on mount
     useEffect(() => {
+        // Web: check URL hash for token
         const token = handleFitbitCallback()
         if (token) {
             fetchFitbitData()
         }
+
+        // Native: listen for deep link callback from system browser
+        registerNativeAuthListener((nativeToken) => {
+            if (nativeToken) {
+                fetchFitbitData()
+            }
+        })
     }, [])
 
     // Fitbit connection

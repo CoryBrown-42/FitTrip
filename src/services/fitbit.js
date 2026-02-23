@@ -2,11 +2,21 @@
 // Uses OAuth 2.0 (Implicit Grant) for authentication and Fitbit REST API for data
 // Docs: https://dev.fitbit.com/build/reference/web-api/
 
-const FITBIT_CLIENT_ID = '23V34N' // User sets this from https://dev.fitbit.com/apps
-const FITBIT_REDIRECT_URI = `${window.location.origin}/connections`
-const FITBIT_API = 'https://api.fitbit.com'
+import { Capacitor } from '@capacitor/core'
+import { Browser } from '@capacitor/browser'
+import { App } from '@capacitor/app'
 
+const FITBIT_CLIENT_ID = '23V34N' // User sets this from https://dev.fitbit.com/apps
+const FITBIT_API = 'https://api.fitbit.com'
 const SCOPES = 'activity heartrate profile sleep weight'
+
+// On native, use a custom URL scheme redirect; on web, use the current origin
+function getRedirectUri() {
+    if (Capacitor.isNativePlatform()) {
+        return 'com.fittrip.app://connections'
+    }
+    return `${window.location.origin}/connections`
+}
 
 let accessToken = null
 
@@ -24,29 +34,63 @@ function buildAuthUrl() {
     const params = new URLSearchParams({
         response_type: 'token',
         client_id: FITBIT_CLIENT_ID,
-        redirect_uri: FITBIT_REDIRECT_URI,
+        redirect_uri: getRedirectUri(),
         scope: SCOPES,
         expires_in: '31536000', // 1 year
     })
     return `https://www.fitbit.com/oauth2/authorize?${params.toString()}`
 }
 
-// Start the OAuth flow by redirecting to Fitbit
-export function startFitbitAuth() {
+// Start the OAuth flow
+// On native: opens system browser and listens for deep link callback
+// On web: redirects in the same window
+export async function startFitbitAuth() {
     if (!FITBIT_CLIENT_ID) {
         throw new Error(
             'Fitbit Client ID not configured.\n' +
             '1. Go to https://dev.fitbit.com/apps and register an app\n' +
             '2. Set OAuth 2.0 Application Type to "Client"\n' +
-            '3. Set Callback URL to ' + FITBIT_REDIRECT_URI + '\n' +
+            '3. Set Callback URL to ' + getRedirectUri() + '\n' +
             '4. Copy the Client ID into src/services/fitbit.js'
         )
     }
-    window.location.href = buildAuthUrl()
+
+    if (Capacitor.isNativePlatform()) {
+        await Browser.open({ url: buildAuthUrl() })
+    } else {
+        window.location.href = buildAuthUrl()
+    }
 }
 
-// Parse the access token from the URL hash after OAuth redirect
+// Listen for deep link OAuth callback on native platforms
+// Call this once at app startup
+let deepLinkListenerRegistered = false
+export function registerNativeAuthListener(onToken) {
+    if (!Capacitor.isNativePlatform() || deepLinkListenerRegistered) return
+    deepLinkListenerRegistered = true
+
+    App.addListener('appUrlOpen', async ({ url }) => {
+        // URL looks like: com.fittrip.app://connections#access_token=...
+        if (url && url.includes('access_token')) {
+            const hashPart = url.split('#')[1]
+            if (hashPart) {
+                const params = new URLSearchParams(hashPart)
+                const token = params.get('access_token')
+                if (token) {
+                    accessToken = token
+                    localStorage.setItem('fitbit-access-token', token)
+                    await Browser.close()
+                    if (onToken) onToken(token)
+                }
+            }
+        }
+    })
+}
+
+// Parse the access token from the URL hash after OAuth redirect (web only)
 export function handleFitbitCallback() {
+    if (Capacitor.isNativePlatform()) return null
+
     const hash = window.location.hash
     if (!hash || !hash.includes('access_token')) return null
 

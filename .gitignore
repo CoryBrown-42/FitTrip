@@ -138,3 +138,9 @@ dist
 # Capacitor native projects
 android/
 ios/
+
+# Google Play service account key
+play-service-account.json
+*.jks
+publish-playstore.bat
+publish-playstore.sh

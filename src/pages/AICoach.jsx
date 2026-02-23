@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext'
 import { chatWithCoach, getWorkoutSuggestion, analyzeProgress } from '../services/gemini'
 import {
     Bot, Send, User, Loader2, Sparkles, Dumbbell,
-    TrendingUp, RefreshCw, Trash2, Lightbulb
+    TrendingUp, RefreshCw, Trash2, Lightbulb, ShieldCheck
 } from 'lucide-react'
 
 const QUICK_PROMPTS = [
@@ -19,8 +19,14 @@ export default function AICoach() {
     const [input, setInput] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
+    const [aiConsent, setAiConsent] = useState(() => localStorage.getItem('fittrip-ai-consent') === 'true')
     const chatEndRef = useRef(null)
     const inputRef = useRef(null)
+
+    function acceptAiConsent() {
+        localStorage.setItem('fittrip-ai-consent', 'true')
+        setAiConsent(true)
+    }
 
     // Auto scroll to bottom
     useEffect(() => {
@@ -180,6 +186,36 @@ export default function AICoach() {
 
     return (
         <div className="max-w-4xl mx-auto flex flex-col h-[calc(100vh-8rem)]">
+            {/* AI Data Consent Banner */}
+            {!aiConsent && (
+                <div className="glass-card p-5 mb-4 shrink-0">
+                    <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0 mt-0.5">
+                            <ShieldCheck className="w-5 h-5 text-brand-400" />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-white font-semibold mb-1">AI Coach Data Notice</h3>
+                            <p className="text-dark-400 text-sm mb-3">
+                                The AI Coach uses <span className="text-dark-200">Google Gemini</span> to generate personalized fitness advice. 
+                                When you send a message, your conversation and a summary of your fitness data 
+                                (workouts, goals, body metrics) are sent to Google's servers for processing. 
+                                No data is stored permanently by Google or by us beyond your device.
+                            </p>
+                            <p className="text-dark-400 text-sm mb-4">
+                                By continuing, you agree to this data processing. See our{' '}
+                                <a href="https://github.com/yroc9/FitTrip/blob/main/PRIVACY_POLICY.md" target="_blank" rel="noopener noreferrer" className="text-brand-400 underline">Privacy Policy</a> for details.
+                            </p>
+                            <button
+                                onClick={acceptAiConsent}
+                                className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-sm font-medium transition-colors"
+                            >
+                                I Understand, Continue
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Header */}
             <div className="flex items-center justify-between mb-4 shrink-0">
                 <div>
@@ -304,15 +340,15 @@ export default function AICoach() {
                                     handleSubmit(e)
                                 }
                             }}
-                            placeholder="Ask your AI coach anything..."
+                            placeholder={aiConsent ? "Ask your AI coach anything..." : "Accept the data notice above to start chatting..."}
                             rows={1}
                             className="w-full px-4 py-3 bg-dark-800/60 border border-dark-600 rounded-xl text-white text-sm focus:outline-none focus:border-brand-500 transition-colors resize-none pr-12"
-                            disabled={loading}
+                            disabled={loading || !aiConsent}
                         />
                     </div>
                     <button
                         type="submit"
-                        disabled={loading || !input.trim()}
+                        disabled={loading || !input.trim() || !aiConsent}
                         className="px-4 py-3 bg-brand-500 hover:bg-brand-600 disabled:bg-dark-700 disabled:text-dark-500 text-white rounded-xl transition-colors"
                     >
                         <Send className="w-5 h-5" />
